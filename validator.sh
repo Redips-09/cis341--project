@@ -45,7 +45,7 @@ else
         return 7 
 fi
 
-if [[ "$LOG_LEVEL" != "ERROR" && "$LOG_LEVEL" != "WARN" && "$LOG_LEVEL" != "INFO" && "$LOG_LEVEL" != "DEBUG" && "$LOG_LEVEl" != "WARNING" ]]; then
+if [[ "$LOG_LEVEL" != "ERROR" && "$LOG_LEVEL" != "WARN" && "$LOG_LEVEL" != "INFO" && "$LOG_LEVEL" != "DEBUG" && "$LOG_LEVEL" != "WARNING" ]]; then
 	echo "Invalid Log level" >&2
 	return 7
 fi

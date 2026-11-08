@@ -5,7 +5,8 @@
 |                                                |
 ==================================================
 |
-|    USAGE: ./sysAudit.sh [OPTIONS]
+|    USAGE: ./sysaudit.sh [OPTIONS]
+|    ./sysaudit_archive.sh [-f | --force ]
 |
 ================================================
 |
@@ -15,15 +16,27 @@
 |	--help		same as -h
 |	--run		runs audit cycle once
 |	--daemon	runs in daemon mode
-| --delegate runs delegate function
+|	--delegate	Authorize a local Linux
+|			user to execute sysaudit
+|
+|   OVERRIDES (after --run or --daemon; they
+|   replace the sysaudit.cfg value for this run):
+|
+|	--interval N		seconds between scans
+|	--max-disk N		disk limit in MB
+|	--audit-dir DIR		audit folder
+|	--log-file FILE		log file
+|	--log-level LEVEL	ERROR, WARN, INFO or DEBUG
 |
 =====================================================
 |
 |    EXAMPLES: 
 |
-|    ./sysAudit.sh --help                       
+|    ./sysaudit.sh --help                       
 |    ./sysaudit.sh --run
 |    ./sysaudit.sh --daemon
+|    ./sysaudit.sh --daemon --interval 30
+|    ./sysaudit.sh --run --max-disk 1
 |    ./sysaudit.sh --delegate
 |	                                           
 ======================================================

@@ -87,8 +87,9 @@ log_msg() {
     local message="$*"
     local line
 
-    # Skip messages that are less important than LOG_LEVEL (p.206)
-    if [ "$(level_number "$level")" -gt "$(level_number "${LOG_LEVEL:-INFO}")" ]; then
+    # Skip messages that are less important than LOG_LEVEL (p.206).
+    # WARNING is the high-priority disk-ceiling flag (task 8), so it is never skipped.
+    if [ "$level" != "WARNING" ] && [ "$(level_number "$level")" -gt "$(level_number "${LOG_LEVEL:-INFO}")" ]; then
         return 0
     fi
 

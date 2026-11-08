@@ -11,6 +11,7 @@ CONFIG_FILE="$SCRIPT_DIR/sysaudit.cfg"
 source "$SCRIPT_DIR/sysaudit_logger.sh" ##sysadut_logger contains the config file parser function load_config()
 source "$SCRIPT_DIR/validator.sh" ## validator contains some validator functions for checking config variables
 source "$SCRIPT_DIR/sysaudit_scanner.sh" ## contains basic script to run audit
+source "$SCRIPT_DIR/sysaudit_ceiling.sh"
 
 ############################################################################################################################
 
@@ -59,13 +60,49 @@ delegate_user() {
 		echo "User $add_user has been added to the authorized users list."
 }
 
+## helper for task 9: allow CLI flags to override the sysaudit.cfg values
+apply_cli_overrides(){
+	shift # skips the --run or --daemon 
+	while [ $# -gt 0 ]; do
+		if [ $# -lt 2 ]; then # every option needs a value after it, otherwise shift 2 fails and the loop never ends
+			echo "Missing value for $1" >&2
+			exit 1
+		fi
+		case "$1" in
+			--interval)
+				OLD_INTERVAL="$SCAN_INTERVAL_SECONDS" # the change is logged after init_log (task 5)
+				SCAN_INTERVAL_SECONDS="$2"
+				shift 2 ;;
+			--max-disk)
+				MAX_DISK_USAGE="$2"
+				shift 2 ;;
+			--audit-dir)
+				AUDIT_DIR="$2"
+				shift 2 ;;
+			--log-file)
+				LOG_FILE="$2"
+				shift 2 ;;
+			--log-level)
+				LOG_LEVEL="$2"
+				shift 2 ;;
+			*)
+				echo "Invalid Argument: $1" >&2
+				exit 1 ;;
+		esac
+	done
+}
+
 
 ## daemon function to run in daemon mode 
 
 run_daemon(){
+local loop_num=1 # so the first loop is logged as #1
 while true; do
+	log_scan_start "$loop_num"
 	generate_audit
+	check_disk_ceiling
 	sleep "$SCAN_INTERVAL_SECONDS"
+	loop_num=$((loop_num + 1))
 done
 }
 
@@ -84,7 +121,7 @@ fi
 case "$1" in 
 
 	--delegate)
-	load_config "$CONFIG_FILE"
+	load_config "$CONFIG_FILE" || exit $?
 	delegate_user
 	;;
 
@@ -93,7 +130,8 @@ case "$1" in
 	;;
 	--run)
 	
-	load_config "$CONFIG_FILE"
+	load_config "$CONFIG_FILE" || exit $?
+	apply_cli_overrides "$@"
 	usercheck
 	response=$?
 
@@ -107,14 +145,19 @@ case "$1" in
 
 	else
 
+	init_log || exit $?
+	if [ -n "$OLD_INTERVAL" ]; then log_sleep_change "$OLD_INTERVAL" "$SCAN_INTERVAL_SECONDS"; fi
 	echo "CONFIGURATION LOADED SUCCESSFULLY! RUNNING ONE AUDIT CYCLE"
 
 	fi
+	log_scan_start 1
 	generate_audit
+	check_disk_ceiling
 	;;
 	--daemon)
 	
-	load_config "$CONFIG_FILE"
+	load_config "$CONFIG_FILE" || exit $?
+	apply_cli_overrides "$@"
 	usercheck
 
 	response=$?
@@ -127,8 +170,10 @@ case "$1" in
 
 	exit "$response"
 
-	else 
+	else
 
+	init_log || exit $?
+	if [ -n "$OLD_INTERVAL" ]; then log_sleep_change "$OLD_INTERVAL" "$SCAN_INTERVAL_SECONDS"; fi
 	echo "CONFIGURATION LOADED SUCCESSFULLY! RUNNING IN DAEMON MODE"
 
 	fi

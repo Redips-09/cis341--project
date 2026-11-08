@@ -60,9 +60,10 @@ For task 9 (command-line arguments override the config), set `MAX_DISK_USAGE` fr
 
 ## Testing
 
-`bash tests/test_tasks_5_7_8.sh` runs 7 tests for task 8:
+`bash tests/test_tasks_5_7_8.sh` runs 8 tests for task 8:
 - 2 MB under a 100 MB limit returns 0 and logs `[INFO]`;
 - 2 MB over a 1 MB limit returns 5 and logs `[WARNING]` to the log and to STDERR;
+- the `[WARNING]` is still logged when `LOG_LEVEL=ERROR`;
 - a non-number limit returns 7;
 - a missing folder returns 4.
 
