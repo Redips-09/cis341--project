@@ -23,7 +23,7 @@ case "$1" in
 	-f|--force)
 		FORCE=1
 		;;
-	'')
+	"")
 		;;
 	*)
 		echo "sysaudit_archive: unknown argument '$1'" 1>&2

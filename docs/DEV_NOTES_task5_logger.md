@@ -19,7 +19,7 @@ Each line needs a level (`[INFO]`, `[WARN]`, `[ERROR]`) and a timestamp.
 1. **Line format.** I started from what the book says a log line contains: a time stamp, the severity, the process name and PID, and the message (p. 294, p. 303). My lines look like this:
    `2026-10-30 10:10:52 [INFO] sysaudit[13474]: Scan loop #1 started`
 2. **`log_msg` function.** It builds that line with `date '+%Y-%m-%d %H:%M:%S'` (the same `date +` style the book uses on p. 183 and p. 207) and appends it to the log with `>>` (p. 190).
-3. **Log levels.** I copied the idea of the `logMsg()` function on p. 206. A `case` statement turns each level into a number (ERROR=0, WARN=1, INFO=2, DEBUG=3), and messages less important than `LOG_LEVEL` are skipped. `[WARNING]` is used by task 8.
+3. **Log levels.** I copied the idea of the `logMsg()` function on p. 206. A `case` statement turns each level into a number (ERROR=0, WARN=1, INFO=2, DEBUG=3), and messages less important than `LOG_LEVEL` are skipped. `[WARNING]` is task 8's high-priority flag, so it is never skipped, even at `LOG_LEVEL=ERROR`.
 4. **Errors to STDERR.** `[ERROR]` and `[WARNING]` lines are also printed to STDERR, because the book says error messages should go to STDERR (p. 188).
 5. **One small function per event.** I added `log_scan_start`, `log_file_dump`, `log_sleep_change` and `log_exception`, so everyone on the team logs these events the same way. `log_file_dump` gets the file size with `wc -c` (p. 196).
 6. **Setup and config.**

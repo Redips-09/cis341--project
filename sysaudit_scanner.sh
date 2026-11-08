@@ -10,6 +10,11 @@ generate_audit(){
 local TIMESTAMP
 local REPORT_FILE
 
+if [ ! -d "$AUDIT_DIR" ]; then
+    log_exception 4 "Audit folder $AUDIT_DIR does not exist"
+    exit 4
+fi 
+
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 REPORT_FILE="$AUDIT_DIR/scan_${TIMESTAMP}.audit"
 
@@ -30,5 +35,6 @@ who >> "$REPORT_FILE"
 echo "=================LOGINS===================" >> "$REPORT_FILE"
 last -n 10 >> "$REPORT_FILE"
 
+log_file_dump "$REPORT_FILE"
 
 }

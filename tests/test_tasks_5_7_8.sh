@@ -138,6 +138,11 @@ run check_disk_ceiling; code=$?
 grep -q '\[WARNING\] .*Disk ceiling reached' "$LOG";                   result $? "[WARNING] is written to the log"
 grep -q 'Disk ceiling reached' "$ERR";                                 result $? "[WARNING] is also printed to STDERR"
 
+reset; make_config "MAX_DISK_USAGE=1" "LOG_LEVEL=ERROR"
+head -c 2097152 /dev/zero > "$WS/big.tar.gz"
+run check_disk_ceiling
+grep -q '\[WARNING\] .*Disk ceiling reached' "$LOG";                   result $? "[WARNING] is still logged when LOG_LEVEL=ERROR"
+
 reset; make_config "MAX_DISK_USAGE=lots"
 run check_disk_ceiling; code=$?
 [ "$code" -eq 7 ];                                                     result $? "non-number ceiling returns 7"
