@@ -15,6 +15,7 @@
 |	--help		same as -h
 |	--run		runs audit cycle once
 |	--daemon	runs in daemon mode
+| --delegate runs delegate function
 |
 =====================================================
 |
@@ -23,6 +24,7 @@
 |    ./sysAudit.sh --help                       
 |    ./sysaudit.sh --run
 |    ./sysaudit.sh --daemon
+|    ./sysaudit.sh --delegate
 |	                                           
 ======================================================
 |	CONFIGURATION:
