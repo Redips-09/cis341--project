@@ -34,8 +34,6 @@ if ! (
     ps aux
     echo "=================CURRENT LOGINS==================="
     who
-    echo "=================LOGINS==================="
-    last -n 10
 ) > "$REPORT_FILE"; then
     log_exception 1 "Failed to create or complete audit report $REPORT_FILE"
     
