@@ -1,5 +1,5 @@
 #The archive and prune jobs are started by this. The timer file will start it.
-#Install to /etc/systemd/sysaudit-maintenance.service
+#Install to /etc/systemd/system/sysaudit-maintenance.service
 
 [Unit]
 Description=sysaudit maintenance - Archive audit reports and prune old archives
