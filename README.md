@@ -21,19 +21,13 @@ A modular Linux system health monitor, security auditing daemon, and automated m
 Run the following commands in your shell to configure permissions, dependencies, dedicated user accounts, and system paths:
 
 ```bash
-# 1. Ensure Linux LF line endings and script execution flags
-sed -i 's/\r$//' *.sh *.cfg *.txt tests/*.sh systemd/*
-chmod -R a+rX .
-chmod a+rx *.sh tests/*.sh
-chmod 666 sysaudit.cfg
-
-# 2. Create the dedicated auditmanager service account
+# 1. Create the dedicated auditmanager service account
 sudo useradd -r -m -s /bin/bash auditmanager 2>/dev/null || true
 sudo mkdir -p /home/auditmanager
 sudo chown -R auditmanager:auditmanager /home/auditmanager
 sudo chmod o+rx "$HOME" "$(dirname "$PWD")" "$PWD"
 
-# 3. Initialize the audit workspace and self-monitoring log
+# 2. Initialize the audit workspace and self-monitoring log
 sudo install -d -o auditmanager -g auditmanager -m 755 /course_project/audit
 sudo install -o auditmanager -g auditmanager -m 664 /dev/null /var/log/sysaudit_daemon.log
 ```
