@@ -69,7 +69,7 @@ sudo -u auditmanager ./sysaudit.sh --delegate
 To configure the daemon to launch on boot and schedule the archive engine to run every night at midnight:
 
 ```bash
-# 1. Deploy project scripts to production directory
+# 1. Deploy project scripts to working directory
 sudo mkdir -p /opt/sysaudit
 sudo cp -r ./* /opt/sysaudit/
 sudo chmod +x /opt/sysaudit/*.sh
