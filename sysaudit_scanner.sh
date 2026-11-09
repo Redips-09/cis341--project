@@ -10,31 +10,42 @@ generate_audit(){
 local TIMESTAMP
 local REPORT_FILE
 
-if [ ! -d "$AUDIT_DIR" ]; then
-    log_exception 4 "Audit folder $AUDIT_DIR does not exist"
-    exit 4
-fi 
+if [ ! -d "$AUDIT_DIR" ] || [ ! -w "$AUDIT_DIR" ] || [ ! -x "$AUDIT_DIR" ]; then
+    log_exception 4 "Audit folder $AUDIT_DIR is missing or inaccessible"
+    return 4
+fi
 
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 REPORT_FILE="$AUDIT_DIR/scan_${TIMESTAMP}.audit"
 
-echo "=================HOSTNAME===================" > "$REPORT_FILE"
-hostname >> "$REPORT_FILE"
-echo "=================UPTIME===================" >> "$REPORT_FILE"
-uptime >> "$REPORT_FILE"
-echo "=================RAM===================" >> "$REPORT_FILE"
-free -h >> "$REPORT_FILE"
-echo "=================DISK USAGE===================" >> "$REPORT_FILE"
-df -h >> "$REPORT_FILE"
-echo "=================NETWORK CONNECTIONS===================" >> "$REPORT_FILE"
-ss -tulpn >> "$REPORT_FILE"
-echo "=================PROCESSES===================" >> "$REPORT_FILE"
-ps aux >> "$REPORT_FILE"
-echo "=================CURRENT LOGINS===================" >> "$REPORT_FILE"
-who >> "$REPORT_FILE"
-echo "=================LOGINS===================" >> "$REPORT_FILE"
-last -n 10 >> "$REPORT_FILE"
+if ! (
+    set -e
+    echo "=================HOSTNAME==================="
+    hostname
+    echo "=================UPTIME==================="
+    uptime
+    echo "=================RAM==================="
+    free -h
+    echo "=================DISK USAGE==================="
+    df -h
+    echo "=================NETWORK CONNECTIONS==================="
+    ss -tulpn
+    echo "=================PROCESSES==================="
+    ps aux
+    echo "=================CURRENT LOGINS==================="
+    who
+    echo "=================LOGINS==================="
+    last -n 10
+) > "$REPORT_FILE"; then
+    log_exception 1 "Failed to create or complete audit report $REPORT_FILE"
+    
+    if [ -f "$REPORT_FILE" ]; then
+        rm -f -- "$REPORT_FILE" || log_exception 1 "Could not remove incomplete report $REPORT_FILE"
+    fi
+    return 1
+fi
 
 log_file_dump "$REPORT_FILE"
+return 0
 
 }

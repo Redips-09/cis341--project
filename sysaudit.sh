@@ -2,7 +2,6 @@
 
 ## cis 341 system health monitor and security auditing daemon
 ## main bash script 
-## author hamza
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)" ##this makes sure the script can always find necessary files
 CONFIG_FILE="$SCRIPT_DIR/sysaudit.cfg"   
@@ -129,56 +128,30 @@ case "$1" in
 	show_help
 	;;
 	--run)
-	
+
 	load_config "$CONFIG_FILE" || exit $?
 	apply_cli_overrides "$@"
 	usercheck
-	response=$?
-
-	validate_config 
-
-	response=$?
-
-	if [ "$response" -ne 0 ];then
-
-	exit "$response"
-
-	else
-
+	validate_config || exit $? 
 	init_log || exit $?
 	if [ -n "$OLD_INTERVAL" ]; then log_sleep_change "$OLD_INTERVAL" "$SCAN_INTERVAL_SECONDS"; fi
 	echo "CONFIGURATION LOADED SUCCESSFULLY! RUNNING ONE AUDIT CYCLE"
-
-	fi
+	
 	log_scan_start 1
-	generate_audit
+	generate_audit || exit $?
 	check_disk_ceiling
 	;;
 	--daemon)
-	
+
 	load_config "$CONFIG_FILE" || exit $?
 	apply_cli_overrides "$@"
 	usercheck
-
-	response=$?
-
-	validate_config
-
-	response=$?
-
-	if [ $response -ne 0 ];then
-
-	exit "$response"
-
-	else
-
+	validate_config || exit $?
 	init_log || exit $?
 	if [ -n "$OLD_INTERVAL" ]; then log_sleep_change "$OLD_INTERVAL" "$SCAN_INTERVAL_SECONDS"; fi
 	echo "CONFIGURATION LOADED SUCCESSFULLY! RUNNING IN DAEMON MODE"
 
-	fi
-
-	run_daemon
+	run_daemon || exit $?
 	;;
 	*)
 	echo "INVALID ARGUMENT" >&2

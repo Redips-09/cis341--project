@@ -4,75 +4,119 @@
 |Linux system health monitor and security daemon |
 |                                                |
 ==================================================
-|
-|    USAGE: ./sysaudit.sh [OPTIONS]
-|    ./sysaudit_archive.sh [-f | --force ]
-|
-================================================
-|
-|   OPTIONS:
-|
-|	-h		prints help 
-|	--help		same as -h
-|	--run		runs audit cycle once
-|	--daemon	runs in daemon mode
-|	--delegate	Authorize a local Linux
-|			user to execute sysaudit
-|
-|   OVERRIDES (after --run or --daemon; they
-|   replace the sysaudit.cfg value for this run):
-|
-|	--interval N		seconds between scans
-|	--max-disk N		disk limit in MB
-|	--audit-dir DIR		audit folder
-|	--log-file FILE		log file
-|	--log-level LEVEL	ERROR, WARN, INFO or DEBUG
-|
-=====================================================
-|
-|    EXAMPLES: 
-|
-|    ./sysaudit.sh --help                       
-|    ./sysaudit.sh --run
-|    ./sysaudit.sh --daemon
-|    ./sysaudit.sh --daemon --interval 30
-|    ./sysaudit.sh --run --max-disk 1
-|    ./sysaudit.sh --delegate
-|	                                           
-======================================================
-|	CONFIGURATION:
-|	file: sysaudit.cfg
-|	
-|
-|
-|
-|
-|
-|=====================================================
-|	ARCHIVE JOB (sysaudit_archive.sh)
-|
-|	Started every night at midnight by
-|	sysaudit-maintenanace.timer.
-|	It packs all the *.audit files into one .tar.gz,
-|	deletes the originals, then deletes archieves
-|	older than RETENTION_DAYS.
-|
-|	Usage: ./sysaudit_archive.sh [OPTIONS]
-|	
-|	OPTIONS:
-|	-f/ --force    runs nows, ignore the 3 day rule
-|			(test purpose only)
-=======================================================
-|	EXIT CODES:
-|
-|	0	SUCCESS	
-|	1	GENERIC_ERROR
-|	2	IDENTITY_VIOLATION
-|	3	MISSING_CONFIG
-|	4	INVALID_WORKSPACE
-|	5	DISK_CEILING_REACHED
-|	6	LOG FILE NOT WRITTABLE
-|	7	BAD CONFIGURATION VALUES
-|	8	ARCHIVE_FAILED
-|	9	PRUNE_FAILED
-===============================================
+USAGE
+
+./sysaudit.sh [OPTIONS]
+./sysaudit.sh --run [OVERRIDES]
+./sysaudit.sh --daemon [OVERRIDES]
+./sysaudit_archive.sh [-f | --force]
+
+Running sysaudit.sh without arguments displays this help message.
+=============================================================================
+OPTIONS
+
+-h, --help          Display this usage information.
+--run               Perform one audit scan and exit.
+--daemon            Repeatedly scan at the configured interval.
+--delegate          Allow auditmanager to authorize another local user.
+
+OVERRIDES (available after --run or --daemon)
+
+--interval N        Scan interval in seconds (positive integer).
+--max-disk N        Audit directory disk ceiling in megabytes.
+--audit-dir DIR     Audit report directory.
+--log-file FILE     Daemon log file path.
+--log-level LEVEL   ERROR, WARN, WARNING, INFO, or DEBUG.
+
+CLI overrides replace sysaudit.cfg values for the current invocation only.
+They do not change the configuration file.
+
+EXAMPLES
+
+./sysaudit.sh --help
+./sysaudit.sh --run
+./sysaudit.sh --daemon
+./sysaudit.sh --daemon --interval 30
+./sysaudit.sh --run --max-disk 1
+./sysaudit.sh --run --audit-dir /course_project/audit
+./sysaudit.sh --delegate
+./sysaudit_archive.sh --force
+===============================================================================
+CONFIGURATION (sysaudit.cfg)
+
+Format: KEY=VALUE,
+
+KEY                    PURPOSE / EXAMPLE VALUE
+AUDIT_DIR              Location for .audit reports
+/course_project/audit
+LOG_FILE               Internal daemon log path
+/var/log/sysaudit_daemon.log
+SCAN_INTERVAL_SECONDS  Seconds between daemon scans; e.g. 60
+MAX_DISK_USAGE         Disk ceiling in MB; e.g. 100
+RETENTION_DAYS         Archive lifetime in days; e.g. 14
+CLEANUP_INTERVAL_DAYS  Days between maintenance runs; e.g. 3
+DEFAULT_MODE           run or daemon; currently validated but
+CLI flags select the execution mode
+LOG_LEVEL              ERROR, WARN, WARNING, INFO, DEBUG
+ARCHIVE_EXTENSIONS     Comma-separated types; e.g. tar.gz,zip
+ARCHIVE_PREFIX         Archive filename prefix; e.g. audit_archive
+LAST_RUN_FILENAME      Maintenance timestamp state file;
+e.g. .last_archive_run
+AUTHORIZED_USERS       
+e.g. "auditmanager"
+==================================================================================
+SAMPLE LOG OUTPUT
+
+2026-11-08 12:00:00 [INFO] sysaudit[1234]: Scan loop #1 started
+2026-11-08 12:00:01 [INFO] sysaudit[1234]: Saved data file
+/course_project/audit/scan_20261108_120000.audit (2048 bytes)
+2026-11-08 12:00:01 [INFO] sysaudit[1234]: Disk usage OK:
+/course_project/audit uses 4096 of 104857600 bytes (100 MB)
+2026-11-08 12:00:01 [WARNING] sysaudit[1234]: Disk ceiling reached:
+/course_project/audit uses 104857600 bytes, limit is 104857600 bytes
+(100 MB)
+2026-11-08 12:00:01 [ERROR] sysaudit[1234]: Exception with exit code 4:
+Audit folder /course_project/audit is missing or inaccessible
+===================================================================================
+SAMPLE REPORT METRICS AND CONSOLE WARNINGS
+
+Reports are named scan_YYYYMMDD_HHMMSS.audit. Each report contains:
+HOSTNAME, UPTIME, RAM, DISK USAGE, NETWORK CONNECTIONS, PROCESSES,
+CURRENT LOGINS, and recent LOGINS.
+
+Example report excerpts:
+HOSTNAME: example-host
+RAM (free -h): Mem: 7.6Gi  3.1Gi  2.0Gi  100Mi  2.5Gi  4.0Gi
+DISK (df -h): /dev/sda2  100G  45G  55G  45%  /
+
+Example STDERR messages:
+Invalid audit workspace: /course_project/audit is missing or not a directory
+Scan interval is invalid
+sysaudit: cannot write to log file /var/log/sysaudit_daemon.log
+======================================================================================
+ARCHIVE MAINTENANCE
+
+./sysaudit_archive.sh
+Archive eligible .audit reports, remove originals after successful
+compression, and prune archives older than RETENTION_DAYS.
+
+./sysaudit_archive.sh -f
+./sysaudit_archive.sh --force
+Force an archive run without waiting for the cleanup interval.
+
+The sysaudit-maintenance.timer schedules the maintenance service at midnight.
+The archive script checks CLEANUP_INTERVAL_DAYS (normally 3 days) before
+performing another non-forced archive run.
+=========================================================================================
+EXIT CODES
+
+0  SUCCESS                 Completed successfully.
+1  GENERIC_ERROR           Unclassified runtime or scanner failure.
+2  IDENTITY_VIOLATION      Execution account not authorized.
+3  MISSING_CONFIG          Required configuration file missing.
+4  INVALID_WORKSPACE       Audit workspace invalid or inaccessible.
+5  DISK_CEILING_REACHED    Audit directory exceeds its disk limit.
+6  LOG_FILE_NOT_WRITABLE   Cannot write the daemon log.
+7  BAD_CONFIG_VALUES       Invalid or missing configuration value.
+8  ARCHIVE_FAILED          Compression/archiving operation failed.
+9  PRUNE_FAILED            Archive retention cleanup failed.
